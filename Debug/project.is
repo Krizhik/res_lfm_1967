@@ -1,0 +1,149 @@
+
+
+
+
+ARCHITECTURE(ADSP-TS201)
+
+$OBJECTS = $COMMAND_LINE_OBJECTS;
+
+MEMORY
+{
+ 
+ M_STARTUP{ TYPE(RAM) START(0x00000000) END(0x000000FF - 16) WIDTH(32) } 
+ M0 { TYPE(RAM) START(0x00000100) END(0x00000000 + (0x20000 - 1) - 16) WIDTH(32) }
+ M1 { TYPE(RAM) START(0x00040000) END(0x00040000 + (0x20000 - 1) - 16) WIDTH(32) }
+ M2 { TYPE(RAM) START(0x00080000) END(0x00080000 + (0x20000 - 1) - 16) WIDTH(32) }
+ M3 { TYPE(RAM) START(0x000C0000) END(0x000C0000 + (0x20000 - 1) - 16) WIDTH(32) }
+ M4 { TYPE(RAM) START(0x00100000) END(0x00100000 + (0x20000 - 1)) WIDTH(32) }
+ M5 { TYPE(RAM) START(0x00140000) END(0x00140000 + (0x20000 - 1)) WIDTH(32) }
+
+ MS0 { TYPE(RAM) START(0x30000000) END(0x37FFFFFF) WIDTH(32) }
+ MS1 { TYPE(RAM) START(0x38000000) END(0x3FFFFFFF) WIDTH(32) }
+ MSSD0 { TYPE(RAM) START(0x40000000) END(0x43FFFFFF) WIDTH(32) }
+ MSSD1 { TYPE(RAM) START(0x50000000) END(0x53FFFFFF) WIDTH(32) }
+ MSSD2 { TYPE(RAM) START(0x60000000) END(0x63FFFFFF) WIDTH(32) }
+ MSSD3 { TYPE(RAM) START(0x70000000) END(0x73FFFFFF) WIDTH(32) }
+
+
+ HOST { TYPE(RAM) START(0x80000000) END(0x8FFFFFFF) WIDTH(32) }
+ HOST1 { TYPE(RAM) START(0x90000000) END(0xAFFFFFFF) WIDTH(32) }
+ HOST2 { TYPE(RAM) START(0xB0000000) END(0xCFFFFFFF) WIDTH(32) }
+ HOST3 { TYPE(RAM) START(0xD0000000) END(0xEFFFFFFF) WIDTH(32) }
+ HOST4 { TYPE(RAM) START(0xF0000000) END(0xFFFFFFFF) WIDTH(32) }
+
+}
+
+PROCESSOR P0
+{
+
+ KEEP( _____system_start, main, _llvm.used, __sw_handler_ctor )
+
+ OUTPUT( $COMMAND_LINE_OUTPUT_FILE )
+
+ SECTIONS
+ {
+ 
+
+
+
+ startup
+ {
+ FILL(0xb3c00000) 
+ INPUT_SECTION_ALIGN(4)
+ INPUT_SECTIONS( StartUp.doj(.program) )
+
+ 
+ 
+ 
+ . = . + 10;
+ } >M_STARTUP
+
+ cdata
+ {
+ ldf_ctor_start = .;
+ INPUT_SECTIONS( $OBJECTS(.ctor0) )
+ INPUT_SECTIONS( $OBJECTS(.ctor1) )
+ INPUT_SECTIONS( $OBJECTS(.ctor2) )
+ INPUT_SECTIONS( $OBJECTS(.ctor3) )
+ INPUT_SECTIONS( $OBJECTS(.ctor4) )
+ INPUT_SECTIONS( $OBJECTS(.ctor5) )
+ ldf_ctor_end = .;
+
+ INPUT_SECTIONS( $OBJECTS(.cdata*) )
+ INPUT_SECTIONS( $OBJECTS(.strings*) )
+ INPUT_SECTIONS( $OBJECTS(llvm.metadata) )
+ } >M0
+ program0 { FILL(0xb3c00000) INPUT_SECTION_ALIGN(4) INPUT_SECTIONS( $OBJECTS(.program*) ) . = . + 10; } >M0
+
+ bss ZERO_INIT
+ {
+ bss_start = .;
+ INPUT_SECTIONS( $OBJECTS(.bss*) )
+ bss_end = .;
+ } >M1
+
+ ehframe
+ {
+ _g_ldf_eh_frame_start = .;
+ INPUT_SECTIONS( $OBJECTS(.eh_frame) )
+ _g_ldf_eh_frame_end = .;
+ } >M2
+ gccexcepttable
+ {
+ _g_ldf_except_table_start = .;
+ INPUT_SECTIONS( $OBJECTS(.gcc_except_table*) )
+ } >M2
+ data2 { INPUT_SECTIONS( $OBJECTS(.data*) ) } >M2
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ kstackseg NO_INIT
+ {
+ ldf_kstack_limit = .;
+ ldf_kstack_base = . + 0x220;
+ . = ldf_kstack_base;
+ } >M3
+
+ 
+ 
+ program3 { FILL(0xb3c00000) INPUT_SECTION_ALIGN(4) INPUT_SECTIONS( $OBJECTS(.program*) ) . = . + 10; } >M3
+ program1 { FILL(0xb3c00000) INPUT_SECTION_ALIGN(4) INPUT_SECTIONS( $OBJECTS(.program*) ) . = . + 10; } >M1
+ program2 { FILL(0xb3c00000) INPUT_SECTION_ALIGN(4) INPUT_SECTIONS( $OBJECTS(.program*) ) . = . + 10; } >M2
+ data1 { INPUT_SECTIONS( $OBJECTS(.data*) ) } >M1
+ data3 { INPUT_SECTIONS( $OBJECTS(.data*) ) } >M3
+ data0 { INPUT_SECTIONS( $OBJECTS(.data*) ) } >M0
+
+ 
+ 
+ addheapseg_2 NO_INIT { _ldf_addheap_base_2 = .; _ldf_addheap_size_2 = (MEMORY_END(M1) - .) + 1; . = MEMORY_END(M1) + 1; } >M1
+ addheapseg_3 NO_INIT { _ldf_addheap_base_3 = .; _ldf_addheap_size_3 = (MEMORY_END(M2) - .) + 1; . = MEMORY_END(M2) + 1; } >M2
+ addheapseg_4 NO_INIT { _ldf_addheap_base_4 = .; _ldf_addheap_size_4 = (MEMORY_END(M3) - .) + 1; . = MEMORY_END(M3) + 1; } >M3
+
+ 
+ defheapseg NO_INIT
+ {
+ _ldf_defheap_base = .;
+ _ldf_defheap_size = MEMORY_SIZEOF(M4);
+ . = . + _ldf_defheap_size;
+ } >M4
+
+ 
+ jstackseg NO_INIT
+ {
+ ldf_jstack_limit = .;
+ ldf_jstack_base = . + 0x20000;
+ _ldf_jstack_rsrv = ldf_jstack_base - 0x2000;
+ . = ldf_jstack_base;
+ } >M5
+
+
+ }
+}

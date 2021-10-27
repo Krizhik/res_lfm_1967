@@ -1,0 +1,7 @@
+res_lfm.dxe : ../project.ldf
+res_lfm.dxe : C:\Milandr\CM-LYNX.2.02.00\toolchain\LibLLVM\StartUp.doj
+res_lfm.dxe : ./res_lfm.doj
+res_lfm.dxe : C:\Milandr\CM-LYNX.2.02.00\toolchain\LibLLVM\clib.dlb
+res_lfm.dxe : C:\Milandr\CM-LYNX.2.02.00\toolchain\LibLLVM\libcxx.dlb
+res_lfm.dxe : C:\Milandr\CM-LYNX.2.02.00\toolchain\LibLLVM\libcxxabi.dlb
+res_lfm.dxe : C:\Milandr\CM-LYNX.2.02.00\toolchain\LibLLVM\libunwind.dlb
